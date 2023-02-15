@@ -1,35 +1,29 @@
 package org.lecanardnoir.zenit
 
-import android.app.Application
-import android.content.res.AssetManager.AssetInputStream
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import org.lecanardnoir.zenit.ui.theme.ZenItTheme
-import java.io.File
-import java.io.InputStream
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MessageCard(msg = Message("Android", "Jetpack Compose"))
+            MessageCard(msg = Message("Android", "Jetpack Compose"), GetAssetImage("r2d2.jpg" ))
         }
     }
 }
@@ -37,9 +31,19 @@ class MainActivity : ComponentActivity() {
 data class Message(val author:String, val body:String)
 
 @Composable
-fun MessageCard(msg:Message){
-    Row {
-        Image(rememberImage, contentDescription = "Profile")
+fun MessageCard(msg:Message, imgBit:ImageBitmap?){
+    Row(
+        modifier = Modifier.fillMaxWidth(1f).fillMaxHeight(1f),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Image(
+            imgBit!!,
+            contentDescription = "Profile",
+            modifier = Modifier
+                .width(40.dp)
+                .height(40.dp)
+        )
         Column {
             Text(text =msg.author)
             Text(text = msg.body)
@@ -50,6 +54,23 @@ fun MessageCard(msg:Message){
 @Preview
 @Composable
 fun PreviewMessageCard(){
-    MessageCard(msg = Message("Colleague", "Hey, take a look at Jetpack Compose, it's great!")
+    val opt = BitmapFactory.Options()
+    opt.inPreferredConfig = Bitmap.Config.ARGB_8888
+    MessageCard(
+        msg = Message("Colleague", "Hey, take a look at Jetpack Compose, it's great!"),
+        GetAssetImage(fileName = "r2d2.jpg")
     )
+}
+
+@Composable
+fun GetAssetImage(fileName:String):ImageBitmap?{
+    var bit:ImageBitmap? = null
+    val assets = LocalContext.current.assets;
+    try {
+        val f = assets.open("images/$fileName")
+        bit = BitmapFactory.decodeStream(f).asImageBitmap()
+    }catch (e:Exception){
+        Log.e("GetAssetImage", "fileName: " + e.message)
+    }
+    return bit ?: throw IllegalArgumentException("Image inexistante")
 }
